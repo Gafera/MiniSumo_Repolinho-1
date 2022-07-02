@@ -15,8 +15,8 @@ char BT = 'f';         // char que é recebida pelo bluetooth
 char estrategia = 'f'; // estratégio de início da luta (qualquer caracter)
 
 #define sharpF 35
-#define sharpE 39
-#define sharpD 33
+#define sharpE 33
+#define sharpD 39
 
 #define pwmB 17
 #define b1 5
@@ -407,15 +407,5 @@ void loop()
             left(90, 90);
         else if (direc == dir)
             right(90, 90);
-        if (valueSharpD)
-        {
-            right(0, 255);
-            delay(500);
-        }
-        else if (valueSharpE)
-        {
-            left(255, 0);
-            delay(500);
-        }
     }
 }
