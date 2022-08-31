@@ -14,9 +14,11 @@ BluetoothSerial SerialBT;
 char BT = 'f';         // char que é recebida pelo bluetooth
 char estrategia = 'f'; // estratégio de início da luta (qualquer caracter)
 
-#define sharpF 35
-#define sharpE 33
-#define sharpD 39
+#define sensorE 33
+#define sensorD 39
+#define sensorFd 35
+#define sensorFe 32
+#define sensorF 36
 
 #define pwmB 17
 #define b1 5
@@ -44,7 +46,7 @@ Direction direc = esq;
         digitalWrite(b1, 1);
         digitalWrite(b2, 1);
     }
-    void backward(uint32_t pa, uint32_t pb)
+    void right(uint32_t pa, uint32_t pb)
     {
         digitalWrite(b1, 1);
         digitalWrite(b2, 0);
@@ -53,7 +55,7 @@ Direction direc = esq;
         analogWrite(pwmB, pb, 255);
         analogWrite(pwmA, pa, 255);
     }
-    void forward(uint32_t pa, uint32_t pb)
+    void left(uint32_t pa, uint32_t pb)
     {
         digitalWrite(b1, 0);
         digitalWrite(b2, 1);
@@ -62,7 +64,7 @@ Direction direc = esq;
         analogWrite(pwmB, pb, 255);
         analogWrite(pwmA, pa, 255);
     }
-    void right(uint32_t pa, uint32_t pb)
+    void backward(uint32_t pa, uint32_t pb)
     {
         digitalWrite(b1, 0);
         digitalWrite(b2, 1);
@@ -71,7 +73,7 @@ Direction direc = esq;
         analogWrite(pwmB, pb, 255);
         analogWrite(pwmA, pa, 255);
     }
-    void left(uint32_t pa, uint32_t pb)
+    void forward(uint32_t pa, uint32_t pb)
     {
         digitalWrite(b1, 1);
         digitalWrite(b2, 0);
@@ -84,9 +86,9 @@ Direction direc = esq;
 
 TaskHandle_t SensorTask;
 
-bool valueSharpF, valueSharpE, valueSharpD;
+bool valueSharpE, valueSharpD, valueSharpFd, valueSharpFe;
 bool running = false;
-
+int valueSharpF;
 void FunctionSensorTask(void *pvParameters)
 {
     // SerialBT.print("FunctionSensorTask running on core ");
@@ -105,19 +107,23 @@ void FunctionSensorTask(void *pvParameters)
                     stop();
                     ESP.restart();
                 }
-                valueSharpF = digitalRead(sharpF);
-                valueSharpD = digitalRead(sharpD);
-                valueSharpE = digitalRead(sharpE);
+                valueSharpF = analogRead(sensorF);
+                valueSharpD = digitalRead(sensorD);
+                valueSharpE = digitalRead(sensorE);
+                valueSharpFd = digitalRead(sensorFd);
+                valueSharpFe = digitalRead(sensorFe);
             }
             vTaskDelay(15);
-            valueSharpF = digitalRead(sharpF);
-            valueSharpD = digitalRead(sharpD);
-            valueSharpE = digitalRead(sharpE);
-            if (valueSharpE)
+            valueSharpF = analogRead(sensorF);
+            valueSharpD = digitalRead(sensorD);
+            valueSharpE = digitalRead(sensorE);
+            valueSharpFd = digitalRead(sensorFd);
+            valueSharpFe = digitalRead(sensorFe);
+            if (valueSharpFe || valueSharpE)
             {
                 direc = esq;
             }
-            else if (valueSharpD)
+            else if (valueSharpFd || valueSharpD)
             {
                 direc = dir;
             }
@@ -132,7 +138,7 @@ void testSensors()
     running = true;
     for (;;)
     {
-        SerialBT.printf("ESQ: %d, FEN: %d, DIR: %d\n", valueSharpE, valueSharpF, valueSharpD);
+        SerialBT.printf("ESQ: %d, FrenteESQ: %d, FEN: %d, FrenteDIR: %d, DIR: %d\n", valueSharpE, valueSharpFe, valueSharpF, valueSharpFd, valueSharpD);
         delay(15);
     }
 }
@@ -165,9 +171,11 @@ void setup()
     pinMode(a1, OUTPUT);
     pinMode(a2, OUTPUT);
     pinMode(pwmA, OUTPUT);
-    pinMode(sharpF, INPUT);
-    pinMode(sharpE, INPUT);
-    pinMode(sharpD, INPUT);
+    pinMode(sensorD, INPUT);
+    pinMode(sensorE, INPUT);
+    pinMode(sensorF, INPUT);
+    pinMode(sensorFd, INPUT);
+    pinMode(sensorFe, INPUT);
     pinMode(led, OUTPUT);
     digitalWrite(stby, 0);
 
@@ -394,9 +402,9 @@ void setup()
 
 void loop()
 {
-    if (valueSharpF)
+    if (valueSharpF>400)
     {
-        while (valueSharpF)
+        while (valueSharpF>400)
         {
             forward(255, 255);
         }
