@@ -14,10 +14,10 @@ BluetoothSerial SerialBT;
 char BT = 'f';         // char que é recebida pelo bluetooth
 char estrategia = 'f'; // estratégio de início da luta (qualquer caracter)
 
-#define sensorE 33
-#define sensorD 39
-#define sensorFd 35
-#define sensorFe 32
+#define sensorE 32
+#define sensorD 35
+#define sensorFd 39
+#define sensorFe 33
 #define sensorF 36
 
 #define pwmB 17
@@ -119,14 +119,16 @@ void FunctionSensorTask(void *pvParameters)
             valueSharpE = digitalRead(sensorE);
             valueSharpFd = digitalRead(sensorFd);
             valueSharpFe = digitalRead(sensorFe);
-            if (valueSharpFe || valueSharpE)
+            
+            if (valueSharpE || valueSharpFe)
             {
-                direc = esq;
+              direc = esq;
             }
-            else if (valueSharpFd || valueSharpD)
+            else if (valueSharpD || valueSharpFd)
             {
-                direc = dir;
+              direc = dir;
             }
+            
         }
     }
 }
@@ -150,14 +152,17 @@ void testMotorsWithSensors()
     running = true;
     for (;;)
     {
-        if (valueSharpF)
-            forward(255, 255);
-        else if (valueSharpE)
-            left(80, 80);
+        if (valueSharpE)
+            left(90, 90);
         else if (valueSharpD)
-            right(80, 80);
-        else
-            stop();
+            right(90, 90);
+        else if (valueSharpFd)
+            forward(90, 255);
+        else if (valueSharpFe)
+            forward(255, 90);
+        else{
+          stop();
+        }
     }
 }
 #pragma endregion testsRegion
@@ -328,36 +333,7 @@ void setup()
             direc = dir;
         }
         break;
-        //
-        // case 'd': // babacas
-        //    if (direc == dir)
-        //    {
-        //        move('D', 'T', 100);
-        //        move('E', 'F', 100);
-        //        delay(50);
-        //        move('D', 'F', 100);
-        //        move('E', 'F', 100);
-        //        delay(250);
-        //        move('D', 'F', 100);
-        //        move('E', 'T', 100);
-        //        delay(120);
-        //        direc = esq;
-        //    }
-        //    else
-        //    {
-        //        move('D', 'F', 100);
-        //        move('E', 'T', 100);
-        //        delay(50);
-        //        move('D', 'F', 100);
-        //        move('E', 'F', 100);
-        //        delay(250);
-        //        move('D', 'T', 100);
-        //        move('E', 'F', 100);
-        //        delay(120);
-        //        direc = dir;
-        //    }
-        //    break;
-        //
+        
     case 'e': // costas   - só gira 180º
         if (direc == dir)
         { // prestar atenção na direc, pq os robôs estarão de costas
@@ -368,6 +344,23 @@ void setup()
         {
             left(255, 255);
             delay(190);
+        }
+        break;
+
+    case 'd': // costas   - só gira 180º
+        if (direc == dir)
+        { // prestar atenção na direc, pq os robôs estarão de costas
+            backward(255, 90);
+            delay(500);
+            forward(255, 90);
+            delay(600);
+        }
+        else
+        {
+            backward(90, 255);
+            delay(500);
+            forward(255, 255);
+            delay(600);
         }
         break;
 
@@ -402,18 +395,30 @@ void setup()
 
 void loop()
 {
-    if (valueSharpF>400)
+    if (valueSharpF>0)
     {
-        while (valueSharpF>400)
+        while (valueSharpF>0)
         {
             forward(255, 255);
         }
     }
     else
     {
-        if (direc == esq)
-            left(90, 90);
-        else if (direc == dir)
-            right(90, 90);
+        if (valueSharpE)
+            left(180, 180);
+        else if (valueSharpD)
+            right(180, 180);
+        else if (valueSharpFd)
+            forward(90, 255);
+        else if (valueSharpFe)
+            forward(255, 90);
+        else{
+          if(direc == dir){
+            right(50, 50);
+          }else{
+            left(50, 50);
+          }
+        }
+            
     }
 }
