@@ -14,10 +14,10 @@ BluetoothSerial SerialBT;
 char BT = 'f';         // char que é recebida pelo bluetooth
 char estrategia = 'f'; // estratégio de início da luta (qualquer caracter)
 
-#define sensorE 33
-#define sensorD 39
-#define sensorFd 35
-#define sensorFe 32
+#define sensorE 32
+#define sensorD 35
+#define sensorFd 39
+#define sensorFe 33
 #define sensorF 36
 
 #define pwmB 17
@@ -31,6 +31,8 @@ char estrategia = 'f'; // estratégio de início da luta (qualquer caracter)
 #define led 2
 #define IR 13
 
+int changeLoop = 0;
+
 enum Direction
 {
     esq,
@@ -39,49 +41,49 @@ enum Direction
 Direction direc = esq;
 
 #pragma region motorController
-    void stop()
-    {
-        digitalWrite(a1, 1);
-        digitalWrite(a2, 1);
-        digitalWrite(b1, 1);
-        digitalWrite(b2, 1);
-    }
-    void right(uint32_t pa, uint32_t pb)
-    {
-        digitalWrite(b1, 1);
-        digitalWrite(b2, 0);
-        digitalWrite(a1, 1);
-        digitalWrite(a2, 0);
-        analogWrite(pwmB, pb, 255);
-        analogWrite(pwmA, pa, 255);
-    }
-    void left(uint32_t pa, uint32_t pb)
-    {
-        digitalWrite(b1, 0);
-        digitalWrite(b2, 1);
-        digitalWrite(a1, 0);
-        digitalWrite(a2, 1);
-        analogWrite(pwmB, pb, 255);
-        analogWrite(pwmA, pa, 255);
-    }
-    void backward(uint32_t pa, uint32_t pb)
-    {
-        digitalWrite(b1, 0);
-        digitalWrite(b2, 1);
-        digitalWrite(a1, 1);
-        digitalWrite(a2, 0);
-        analogWrite(pwmB, pb, 255);
-        analogWrite(pwmA, pa, 255);
-    }
-    void forward(uint32_t pa, uint32_t pb)
-    {
-        digitalWrite(b1, 1);
-        digitalWrite(b2, 0);
-        digitalWrite(a1, 0);
-        digitalWrite(a2, 1);
-        analogWrite(pwmB, pb, 255);
-        analogWrite(pwmA, pa, 255);
-    }
+void stop()
+{
+    digitalWrite(a1, 1);
+    digitalWrite(a2, 1);
+    digitalWrite(b1, 1);
+    digitalWrite(b2, 1);
+}
+void right(uint32_t pa, uint32_t pb)
+{
+    digitalWrite(b1, 1);
+    digitalWrite(b2, 0);
+    digitalWrite(a1, 1);
+    digitalWrite(a2, 0);
+    analogWrite(pwmB, pb, 255);
+    analogWrite(pwmA, pa, 255);
+}
+void left(uint32_t pa, uint32_t pb)
+{
+    digitalWrite(b1, 0);
+    digitalWrite(b2, 1);
+    digitalWrite(a1, 0);
+    digitalWrite(a2, 1);
+    analogWrite(pwmB, pb, 255);
+    analogWrite(pwmA, pa, 255);
+}
+void backward(uint32_t pa, uint32_t pb)
+{
+    digitalWrite(b1, 0);
+    digitalWrite(b2, 1);
+    digitalWrite(a1, 1);
+    digitalWrite(a2, 0);
+    analogWrite(pwmB, pb, 255);
+    analogWrite(pwmA, pa, 255);
+}
+void forward(uint32_t pa, uint32_t pb)
+{
+    digitalWrite(b1, 1);
+    digitalWrite(b2, 0);
+    digitalWrite(a1, 0);
+    digitalWrite(a2, 1);
+    analogWrite(pwmB, pb, 255);
+    analogWrite(pwmA, pa, 255);
+}
 #pragma endregion motorController
 
 TaskHandle_t SensorTask;
@@ -119,11 +121,12 @@ void FunctionSensorTask(void *pvParameters)
             valueSharpE = digitalRead(sensorE);
             valueSharpFd = digitalRead(sensorFd);
             valueSharpFe = digitalRead(sensorFe);
-            if (valueSharpFe || valueSharpE)
+
+            if (valueSharpE || valueSharpFe)
             {
                 direc = esq;
             }
-            else if (valueSharpFd || valueSharpD)
+            else if (valueSharpD || valueSharpFd)
             {
                 direc = dir;
             }
@@ -150,14 +153,20 @@ void testMotorsWithSensors()
     running = true;
     for (;;)
     {
-        if (valueSharpF)
-            forward(255, 255);
-        else if (valueSharpE)
-            left(80, 80);
+        if (valueSharpF > 0 && valueSharpF < 1000)
+            forward(90, 90);
         else if (valueSharpD)
-            right(80, 80);
+            right(90, 90);
+        else if (valueSharpE)
+            left(90, 90);
+        else if (valueSharpFd)
+            forward(90, 255);
+        else if (valueSharpFe)
+            forward(255, 90);
         else
+        {
             stop();
+        }
     }
 }
 #pragma endregion testsRegion
@@ -287,9 +296,9 @@ void setup()
         if (direc == dir)
         {
             right(255, 255);
-            delay(90);
+            delay(80);
             forward(255, 180);
-            delay(500);
+            delay(450);
             left(255, 255);
             delay(200);
             direc = esq;
@@ -328,36 +337,7 @@ void setup()
             direc = dir;
         }
         break;
-        //
-        // case 'd': // babacas
-        //    if (direc == dir)
-        //    {
-        //        move('D', 'T', 100);
-        //        move('E', 'F', 100);
-        //        delay(50);
-        //        move('D', 'F', 100);
-        //        move('E', 'F', 100);
-        //        delay(250);
-        //        move('D', 'F', 100);
-        //        move('E', 'T', 100);
-        //        delay(120);
-        //        direc = esq;
-        //    }
-        //    else
-        //    {
-        //        move('D', 'F', 100);
-        //        move('E', 'T', 100);
-        //        delay(50);
-        //        move('D', 'F', 100);
-        //        move('E', 'F', 100);
-        //        delay(250);
-        //        move('D', 'T', 100);
-        //        move('E', 'F', 100);
-        //        delay(120);
-        //        direc = dir;
-        //    }
-        //    break;
-        //
+
     case 'e': // costas   - só gira 180º
         if (direc == dir)
         { // prestar atenção na direc, pq os robôs estarão de costas
@@ -371,23 +351,29 @@ void setup()
         }
         break;
 
+    case 'd': // costas   - só gira 180º
+        if (direc == dir)
+        { // prestar atenção na direc, pq os robôs estarão de costas
+            backward(255, 90);
+            delay(500);
+            forward(255, 90);
+            delay(600);
+        }
+        else
+        {
+            backward(90, 255);
+            delay(500);
+            forward(255, 255);
+            delay(600);
+        }
+        break;
+
     case 'f': // vai direto pro loop
         break;
 
-        // case 'g': // costas curvao
-        //     if (direc == dir)
-        //     {
-        //         // move('D', 'F', 50);
-        //         // move('E', 'F', 100);
-        //         delay(200);
-        //     }
-        //     else
-        //     {
-        //         // move('D', 'F', 100);
-        //         // move('E', 'F', 50);
-        //         delay(200);
-        //     }
-        //     break;
+    case 'g': // costas curvao
+        changeLoop = 1;
+        break;
 
     default: // CÓPIA DO FRENTÃO
         forward(255, 255);
@@ -402,18 +388,64 @@ void setup()
 
 void loop()
 {
-    if (valueSharpF>400)
+
+    if (changeLoop == 0)
     {
-        while (valueSharpF>400)
+
+        if (valueSharpF > 600)
         {
-            forward(255, 255);
+            while (valueSharpF > 600)
+            {
+                forward(255, 255);
+            }
+        }
+        else
+        {
+            if (valueSharpE)
+                left(100, 100);
+            else if (valueSharpD)
+                right(100, 100);
+            else if (valueSharpFd)
+                forward(45, 120);
+            else if (valueSharpFe)
+                forward(120, 45);
+            else
+            {
+                if (direc == dir)
+                {
+                    right(50, 50);
+                }
+                else
+                {
+                    left(50, 50);
+                }
+            }
         }
     }
-    else
+    // CHANGE LOOP ------------------------------------------------------------------------------------
+    else if (changeLoop == 1)
     {
-        if (direc == esq)
-            left(90, 90);
-        else if (direc == dir)
-            right(90, 90);
+        if (valueSharpF > 1100)
+        {
+            while (valueSharpF > 1100)
+            {
+                forward(255, 255);
+            }
+        }
+        else
+        {
+            if (valueSharpE)
+                left(180, 180);
+            else if (valueSharpD)
+                right(180, 180);
+            else if (valueSharpFd)
+                forward(45, 180);
+            else if (valueSharpFe)
+                forward(180, 45);
+            else
+            {
+                forward(20, 20);
+            }
+        }
     }
 }
